@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f6fa">
+    <title>Daymark — My Tasks</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
+  </head>
+  <body>
+    <div id="notice" class="notice" role="status" aria-live="polite"></div>
+    <div class="app-shell container-fluid px-0">
+      <aside class="sidebar">
+        <a class="brand" href="#" data-view="today" aria-label="Daymark home">
+          <span class="brand-mark"><i class="bi bi-check2"></i></span>
+          <span>daymark</span>
+        </a>
+
+        <button class="btn btn-primary new-task-button" data-action="new-task">
+          <i class="bi bi-plus-lg"></i> New task
+        </button>
+
+        <div class="sidebar-label">Workspace</div>
+        <nav class="nav flex-column view-nav" aria-label="Task views">
+          <button class="nav-link active" data-view="today"><i class="bi bi-sun"></i><span>Today</span><span id="today-count" class="nav-count"></span></button>
+          <button class="nav-link" data-view="upcoming"><i class="bi bi-calendar3"></i><span>Upcoming</span></button>
+          <button class="nav-link" data-view="all"><i class="bi bi-inbox"></i><span>All tasks</span><span id="all-count" class="nav-count"></span></button>
+          <button class="nav-link" data-view="calendar"><i class="bi bi-calendar-week"></i><span>Calendar</span></button>
+          <button class="nav-link" data-view="trash"><i class="bi bi-trash3"></i><span>Trash</span><span id="trash-count" class="nav-count"></span></button>
+        </nav>
+
+        <div class="sidebar-section">
+          <div class="sidebar-heading"><span class="sidebar-label mb-0">Categories</span><i class="bi bi-chevron-down"></i></div>
+          <div id="category-list" class="sidebar-collection"></div>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-heading"><span class="sidebar-label mb-0">Projects</span><i class="bi bi-chevron-down"></i></div>
+          <div id="project-list" class="sidebar-collection"></div>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-heading"><span class="sidebar-label mb-0">Tags</span><i class="bi bi-chevron-down"></i></div>
+          <div id="tag-list" class="sidebar-collection"></div>
+        </div>
+
+        <div class="sidebar-footer">
+          <span class="avatar">D</span>
+          <div><strong>My workspace</strong><small>One step at a time</small></div>
+          <i class="bi bi-three-dots ms-auto"></i>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar">
+          <button class="mobile-brand" data-view="today"><span class="brand-mark"><i class="bi bi-check2"></i></span>daymark</button>
+          <div class="breadcrumb-label"><span>Workspace</span><i class="bi bi-chevron-right"></i><strong id="breadcrumb-current">Today</strong></div>
+          <div class="topbar-actions">
+            <label class="search-box" for="search-input">
+              <i class="bi bi-search"></i>
+              <input id="search-input" type="search" placeholder="Search tasks..." autocomplete="off" aria-label="Search tasks">
+              <kbd>/</kbd>
+            </label>
+            <button class="icon-button" data-action="new-task" aria-label="Add a new task"><i class="bi bi-plus-lg"></i></button>
+          </div>
+        </header>
+
+        <nav class="mobile-nav" aria-label="Task views">
+          <button class="active" data-view="today"><i class="bi bi-sun"></i>Today</button>
+          <button data-view="upcoming"><i class="bi bi-calendar3"></i>Upcoming</button>
+          <button data-view="all"><i class="bi bi-inbox"></i>All</button>
+          <button data-view="calendar"><i class="bi bi-calendar-week"></i>Calendar</button>
+          <button data-view="trash"><i class="bi bi-trash3"></i>Trash</button>
+        </nav>
+
+        <section class="content-wrap">
+          <div class="page-heading">
+            <div>
+              <div id="today-date" class="eyebrow"></div>
+              <h1 id="page-title">Today</h1>
+              <p id="page-subtitle">Take care of today's tasks, one step at a time.</p>
+            </div>
+            <button class="btn btn-primary heading-add" data-action="new-task"><i class="bi bi-plus-lg"></i> Add task</button>
+          </div>
+
+          <section class="summary-grid" aria-label="Task summary">
+            <article class="summary-card">
+              <div class="summary-icon icon-blue"><i class="bi bi-list-check"></i></div>
+              <div><span>Total tasks</span><strong id="summary-total">0</strong></div>
+              <small>In your task list</small>
+            </article>
+            <article class="summary-card">
+              <div class="summary-icon icon-orange"><i class="bi bi-sun"></i></div>
+              <div><span>Due today</span><strong id="summary-today">0</strong></div>
+              <small>Tasks due today</small>
+            </article>
+            <article class="summary-card">
+              <div class="summary-icon icon-purple"><i class="bi bi-arrow-repeat"></i></div>
+              <div><span>In progress</span><strong id="summary-progress">0</strong></div>
+              <small>Tasks you're working on</small>
+            </article>
+            <article class="summary-card progress-summary">
+              <div class="summary-icon icon-green"><i class="bi bi-graph-up-arrow"></i></div>
+              <div class="progress-copy"><span>Completion</span><strong id="summary-rate">0%</strong></div>
+              <div class="progress" role="progressbar" aria-label="Overall completion" aria-valuemin="0" aria-valuemax="100">
+                <div id="completion-progress" class="progress-bar"></div>
+              </div>
+              <small id="summary-completed">0 tasks completed</small>
+            </article>
+          </section>
+
+          <section class="quick-add-panel" aria-label="Quick add task">
+            <form id="quick-add-form" class="quick-add-form">
+              <i class="bi bi-plus-circle"></i>
+              <input id="quick-title" type="text" maxlength="160" placeholder="Quickly add a task..." aria-label="New task title">
+              <button class="btn btn-primary" type="submit">Add <span class="shortcut">↵</span></button>
+            </form>
+            <div id="quick-error" class="field-error" aria-live="polite"></div>
+          </section>
+
+          <section class="tasks-section">
+            <div class="section-toolbar">
+              <div class="section-title-wrap">
+                <h2 id="list-heading">Today's tasks</h2>
+                <span id="visible-count" class="result-count">0</span>
+              </div>
+              <div class="filters">
+                <select id="category-filter" class="form-select form-select-sm" aria-label="Filter by category">
+                  <option value="">All categories</option>
+                </select>
+                <select id="project-filter" class="form-select form-select-sm" aria-label="Filter by project">
+                  <option value="">All projects</option>
+                </select>
+                <select id="tag-filter" class="form-select form-select-sm" aria-label="Filter by tag">
+                  <option value="">All tags</option>
+                </select>
+                <select id="importance-filter" class="form-select form-select-sm" aria-label="Filter by importance">
+                  <option value="">All priorities</option>
+                  <option value="high">High (8–10)</option>
+                  <option value="medium">Medium (4–7)</option>
+                  <option value="low">Low (1–3)</option>
+                  <optgroup label="Filter by score">
+                    <option value="1">Priority 1</option>
+                    <option value="2">Priority 2</option>
+                    <option value="3">Priority 3</option>
+                    <option value="4">Priority 4</option>
+                    <option value="5">Priority 5</option>
+                    <option value="6">Priority 6</option>
+                    <option value="7">Priority 7</option>
+                    <option value="8">Priority 8</option>
+                    <option value="9">Priority 9</option>
+                    <option value="10">Priority 10</option>
+                  </optgroup>
+                </select>
+                <select id="status-filter" class="form-select form-select-sm" aria-label="Filter by status">
+                  <option value="">All statuses</option>
+                  <option value="todo">To do</option>
+                  <option value="in-progress">In progress</option>
+                  <option value="done">Done</option>
+                </select>
+                <select id="sort-select" class="form-select form-select-sm sort-select" aria-label="Sort tasks">
+                  <option value="date">Due date</option>
+                  <option value="importance">Priority</option>
+                  <option value="title">Title</option>
+                </select>
+              </div>
+            </div>
+
+            <div id="task-list" class="task-list"></div>
+            <div id="calendar-view" class="calendar-view d-none"></div>
+            <div id="empty-state" class="empty-state d-none">
+              <div class="empty-illustration"><i class="bi bi-check2-circle"></i></div>
+              <h3 id="empty-title">No tasks yet</h3>
+              <p id="empty-description">Add a task to get your day started.</p>
+              <button id="empty-add" class="btn btn-primary" data-action="new-task"><i class="bi bi-plus-lg"></i> Add a task</button>
+            </div>
+          </section>
+          <footer class="page-footer">Small steps lead to big changes <span>✦</span></footer>
+        </section>
+      </main>
+    </div>
+
+    <div class="modal fade" id="task-modal" tabindex="-1" aria-labelledby="task-modal-title" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content task-modal-content">
+          <form id="task-form" novalidate>
+            <div class="modal-header">
+              <div><div class="eyebrow">TASK DETAILS</div><h2 class="modal-title" id="task-modal-title">New task</h2></div>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <input id="task-id" type="hidden">
+              <div class="mb-3">
+                <label for="task-title" class="form-label">Title <span class="required-mark">*</span></label>
+                <input id="task-title" class="form-control form-control-lg" type="text" maxlength="160" placeholder="What needs to be done?" required>
+                <div id="title-error" class="field-error" aria-live="polite"></div>
+              </div>
+              <div class="mb-3">
+                <label for="task-description" class="form-label">Notes</label>
+                <textarea id="task-description" class="form-control" rows="3" maxlength="2000" placeholder="Add details or notes"></textarea>
+              </div>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label for="task-due-date" class="form-label">Due date</label>
+                  <input id="task-due-date" class="form-control" type="text" inputmode="numeric" placeholder="MM/DD/YYYY" maxlength="10" aria-describedby="date-help date-error">
+                  <div id="date-help" class="form-text">Enter a date in MM/DD/YYYY format. Time is optional.</div>
+                  <div id="date-error" class="field-error" aria-live="polite"></div>
+                </div>
+                <div class="col-md-6">
+                  <label for="task-due-time" class="form-label">Due time <span class="text-muted fw-normal">(optional)</span></label>
+                  <input id="task-due-time" class="form-control" type="time" aria-describedby="time-help time-error">
+                  <div id="time-help" class="form-text">For example, 11:30 AM.</div>
+                  <div id="time-error" class="field-error" aria-live="polite"></div>
+                </div>
+                <div class="col-md-6">
+                  <label for="task-importance" class="form-label">Priority <span id="importance-value">5</span>/10</label>
+                  <input id="task-importance" class="form-range" type="range" min="1" max="10" value="5">
+                  <div class="range-labels"><span>Low</span><span>High</span></div>
+                </div>
+                <div class="col-md-6">
+                  <label for="task-category" class="form-label">Category</label>
+                  <input id="task-category" class="form-control" type="text" list="category-options" maxlength="50" placeholder="e.g. Personal, Work">
+                  <datalist id="category-options"></datalist>
+                </div>
+                <div class="col-md-6">
+                  <label for="task-project" class="form-label">Project</label>
+                  <input id="task-project" class="form-control" type="text" list="project-options" maxlength="80" placeholder="Choose or enter a project">
+                  <datalist id="project-options"></datalist>
+                </div>
+                <div class="col-12">
+                  <label for="task-tags" class="form-label">Tags</label>
+                  <input id="task-tags" class="form-control" type="text" maxlength="250" placeholder="Comma separated (e.g. design, urgent)">
+                  <div class="form-text">Separate multiple tags with commas.</div>
+                </div>
+                <div id="status-field" class="col-md-6 d-none">
+                  <label for="task-status" class="form-label">Status</label>
+                  <select id="task-status" class="form-select">
+                    <option value="todo">To do</option>
+                    <option value="in-progress">In progress</option>
+                    <option value="done">Done</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary px-4"><i class="bi bi-check2"></i> Save task</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
