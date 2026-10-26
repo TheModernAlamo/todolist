@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f8fafc">
+    <meta name="description" content="A simple, thoughtful space to organize your tasks.">
+    <title>Daymark — Your tasks, in focus</title>
+    <link rel="stylesheet" href="./style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ink: "#17211d",
+              muted: "#7b8982",
+              line: "#e8eeea",
+              canvas: "#f7f9f7",
+              brand: "#28785f",
+              "brand-dark": "#1d604b",
+              mint: "#eaf4ef"
+            },
+            boxShadow: {
+              card: "0 10px 30px rgba(30, 55, 43, 0.055)",
+              pop: "0 24px 80px rgba(18, 36, 27, 0.2)"
+            },
+            fontFamily: {
+              sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"]
+            }
+          }
+        }
+      };
+    </script>
+  </head>
+  <body class="min-h-screen bg-canvas font-sans text-ink antialiased">
+    <div class="app-shell min-h-screen">
+      <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-30 flex w-[264px] flex-col border-r border-line bg-white px-5 pb-5 pt-6 transition-transform duration-200">
+        <a class="brand-lockup mb-9 flex items-center gap-3 px-2" href="#" aria-label="Daymark home" data-view="today">
+          <span class="brand-mark flex h-10 w-10 items-center justify-center rounded-2xl bg-brand text-white">
+            <svg viewBox="0 0 24 24" aria-hidden="true" class="h-5 w-5 fill-none stroke-current" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/><path d="M12 22a10 10 0 1 0-10-10"/></svg>
+          </span>
+          <span><span class="block text-[17px] font-bold tracking-tight">daymark</span><span class="block text-[11px] font-medium tracking-[.12em] text-muted">MAKE ROOM FOR WHAT MATTERS</span></span>
+        </a>
+
+        <button type="button" data-action="new-task" class="mb-8 flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-dark focus:outline-none focus:ring-4 focus:ring-emerald-100">
+          <span class="text-lg leading-none">+</span> Add a task <span class="ml-auto rounded-md bg-white/15 px-1.5 py-0.5 text-[10px] font-medium">N</span>
+        </button>
+
+        <nav aria-label="Main navigation">
+          <p class="section-label mb-2 px-3">WORKSPACE</p>
+          <div class="space-y-1">
+            <button class="nav-link" type="button" data-view="today"><span class="nav-icon">◷</span><span>Today</span><span id="today-count" class="nav-count"></span></button>
+            <button class="nav-link" type="button" data-view="upcoming"><span class="nav-icon">▦</span><span>Upcoming</span></button>
+            <button class="nav-link" type="button" data-view="all"><span class="nav-icon">▤</span><span>All tasks</span><span id="all-count" class="nav-count"></span></button>
+            <button class="nav-link" type="button" data-view="calendar"><span class="nav-icon">▣</span><span>Calendar</span></button>
+            <button class="nav-link" type="button" data-view="trash"><span class="nav-icon">⌑</span><span>Trash</span><span id="trash-count" class="nav-count"></span></button>
+          </div>
+        </nav>
+
+        <div class="mt-8">
+          <div class="mb-2 flex items-center justify-between px-3">
+            <p class="section-label">CATEGORIES</p>
+            <span class="text-xs text-muted">⌄</span>
+          </div>
+          <div id="category-list" class="collection-list"></div>
+        </div>
+        <div class="mt-7">
+          <div class="mb-2 flex items-center justify-between px-3"><p class="section-label">PROJECTS</p><span class="text-xs text-muted">⌄</span></div>
+          <div id="project-list" class="collection-list"></div>
+        </div>
+        <div class="mt-7">
+          <div class="mb-2 flex items-center justify-between px-3"><p class="section-label">TAGS</p><span class="text-xs text-muted">⌄</span></div>
+          <div id="tag-list" class="collection-list"></div>
+        </div>
+
+        <div class="mt-auto rounded-2xl bg-mint p-4">
+          <div class="mb-2 flex items-center gap-2 text-sm font-semibold"><span class="text-brand">✦</span> A little reminder</div>
+          <p class="text-xs leading-5 text-slate-600">Progress is made one small step at a time. Keep going.</p>
+        </div>
+        <div class="mt-4 flex items-center gap-3 border-t border-line px-2 pt-4">
+          <span class="flex h-9 w-9 items-center justify-center rounded-full bg-[#f4e8d8] text-sm font-semibold text-[#87643f]">Y</span>
+          <span><span class="block text-sm font-semibold">Your workspace</span><span class="block text-xs text-muted">Personal plan</span></span>
+          <button type="button" class="ml-auto rounded-lg px-2 py-1 text-muted hover:bg-canvas" aria-label="Workspace options">···</button>
+        </div>
+      </aside>
+
+      <div id="sidebar-scrim" class="sidebar-scrim fixed inset-0 z-20 hidden bg-slate-900/30"></div>
+      <main class="main-area min-h-screen">
+        <header class="topbar sticky top-0 z-10 flex min-h-[76px] items-center justify-between gap-4 border-b border-line/80 bg-canvas/95 px-5 backdrop-blur sm:px-8 lg:px-10">
+          <div class="flex min-w-0 items-center gap-3">
+            <button id="menu-toggle" type="button" class="menu-toggle rounded-lg p-2 text-slate-600 hover:bg-white" aria-label="Open navigation">☰</button>
+            <div class="hidden text-sm text-muted sm:block">Workspace <span class="mx-2 text-slate-300">/</span> <span id="breadcrumb-current" class="font-medium text-ink">Today</span></div>
+          </div>
+          <div class="topbar-actions flex items-center gap-3">
+            <label class="search-box flex h-10 w-[min(36vw,280px)] items-center gap-2 rounded-xl border border-line bg-white px-3 text-muted focus-within:border-emerald-300 focus-within:ring-4 focus-within:ring-emerald-50">
+              <span aria-hidden="true">⌕</span>
+              <input id="search-input" type="search" class="min-w-0 flex-1 border-0 bg-transparent text-sm text-ink outline-none placeholder:text-slate-400" placeholder="Search tasks..." aria-label="Search tasks">
+              <kbd class="hidden rounded border border-line px-1.5 py-0.5 text-[10px] sm:inline-block">/</kbd>
+            </label>
+            <button type="button" data-action="new-task" class="header-add rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-dark">+ <span class="hidden sm:inline">New task</span></button>
+          </div>
+        </header>
+
+        <div class="content-wrap mx-auto max-w-[1240px] px-5 pb-12 pt-8 sm:px-8 lg:px-10 lg:pt-10">
+          <section class="mb-8 flex flex-wrap items-end justify-between gap-5">
+            <div>
+              <p id="page-eyebrow" class="mb-2 text-xs font-semibold uppercase tracking-[.16em] text-brand">Monday, October 26</p>
+              <h1 id="page-title" class="text-3xl font-bold tracking-tight sm:text-[34px]">Today</h1>
+              <p id="page-subtitle" class="mt-2 text-sm text-muted">Take care of today's tasks, one step at a time.</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="hidden items-center gap-2 rounded-xl border border-line bg-white px-3 py-2 text-xs text-muted sm:flex"><span class="h-2 w-2 rounded-full bg-brand"></span><span><strong id="completion-summary" class="font-semibold text-ink">0%</strong> completed</span></div>
+              <button type="button" data-action="new-task" class="rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-semibold text-ink shadow-sm transition hover:border-brand/30 hover:text-brand"><span class="mr-1 text-brand">＋</span> Add task</button>
+            </div>
+          </section>
+
+          <section id="progress-card" class="mb-7 flex items-center gap-5 rounded-2xl border border-line bg-white px-5 py-4 shadow-card sm:px-6">
+            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-mint text-xl text-brand">✧</div>
+            <div class="min-w-0 flex-1">
+              <div class="mb-2 flex items-center justify-between gap-3"><p class="text-sm font-semibold">Your daily progress</p><p class="text-xs text-muted"><span id="progress-count">0 of 0</span> tasks completed</p></div>
+              <div class="h-2 overflow-hidden rounded-full bg-slate-100"><div id="progress-bar" class="h-full rounded-full bg-brand transition-all duration-300" style="width:0%"></div></div>
+            </div>
+            <span id="progress-percent" class="hidden text-2xl font-bold text-brand sm:block">0%</span>
+          </section>
+
+          <section id="quick-add-card" class="mb-7 rounded-2xl border border-line bg-white p-3 shadow-card sm:p-4">
+            <form id="quick-add-form" class="flex items-center gap-3">
+              <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-mint text-xl text-brand">＋</span>
+              <input id="quick-title" type="text" class="min-w-0 flex-1 border-0 bg-transparent py-2 text-sm outline-none placeholder:text-slate-400" placeholder="What needs to get done?" maxlength="160" aria-label="Quick add task title" aria-describedby="quick-error">
+              <span class="hidden text-xs text-muted md:block">Press <kbd class="rounded border border-line px-1.5 py-1">Enter</kbd> to add</span>
+              <button type="submit" class="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-dark">Add task</button>
+            </form>
+            <p id="quick-error" class="form-error ml-12" aria-live="polite"></p>
+          </section>
+
+          <section class="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+              <h2 id="list-heading" class="text-base font-semibold">Today's tasks</h2>
+              <span id="visible-count" class="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">0</span>
+            </div>
+            <div id="filter-controls" class="filters flex flex-wrap items-center gap-2">
+              <label class="sr-only" for="category-filter">Filter by category</label>
+              <select id="category-filter" class="filter-select"><option value="">Category</option></select>
+              <label class="sr-only" for="project-filter">Filter by project</label>
+              <select id="project-filter" class="filter-select"><option value="">Project</option></select>
+              <label class="sr-only" for="tag-filter">Filter by tag</label>
+              <select id="tag-filter" class="filter-select"><option value="">Tag</option></select>
+              <label class="sr-only" for="importance-filter">Filter by importance</label>
+              <select id="importance-filter" class="filter-select"><option value="">Priority</option><option value="high">High (8–10)</option><option value="medium">Medium (4–7)</option><option value="low">Low (1–3)</option><optgroup label="Exact score"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></optgroup></select>
+              <label class="sr-only" for="status-filter">Filter by status</label>
+              <select id="status-filter" class="filter-select"><option value="">Status</option><option value="todo">To do</option><option value="in-progress">In progress</option><option value="done">Done</option></select>
+              <label class="sr-only" for="sort-select">Sort tasks</label>
+              <select id="sort-select" class="filter-select sort-select"><option value="date">Due date</option><option value="title">Alphabetical</option><option value="importance">Priority</option></select>
+            </div>
+          </section>
+
+          <section id="task-list" aria-live="polite" aria-label="Tasks"></section>
+          <section id="calendar-view" class="hidden" aria-label="Calendar"></section>
+          <section id="empty-state" class="hidden rounded-2xl border border-dashed border-slate-200 bg-white px-6 py-14 text-center">
+            <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-mint text-2xl text-brand">✦</div>
+            <h3 id="empty-title" class="text-base font-semibold">A clear day starts here</h3>
+            <p id="empty-description" class="mx-auto mt-2 max-w-sm text-sm leading-6 text-muted">Add a task to make progress on what matters to you.</p>
+            <button id="empty-add-button" type="button" data-action="new-task" class="mt-5 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-dark">Create your first task</button>
+          </section>
+          <p id="trash-note" class="mt-5 hidden text-center text-xs text-muted">Items in Trash are permanently cleared when this browser session ends.</p>
+        </div>
+      </main>
+    </div>
+
+    <dialog id="task-dialog" class="task-dialog w-[min(100%-24px,620px)] rounded-2xl bg-white p-0 shadow-pop backdrop:bg-slate-900/40">
+      <form id="task-form" novalidate>
+        <div class="flex items-start justify-between border-b border-line px-6 py-5 sm:px-8">
+          <div><p class="mb-1 text-xs font-semibold uppercase tracking-[.13em] text-brand">TASK DETAILS</p><h2 id="dialog-title" class="text-xl font-bold">Create a task</h2></div>
+          <button type="button" data-action="close-dialog" class="rounded-lg px-2 py-1 text-2xl leading-none text-muted hover:bg-canvas" aria-label="Close dialog">×</button>
+        </div>
+        <div class="space-y-5 px-6 py-6 sm:px-8">
+          <input id="task-id" type="hidden">
+          <div>
+            <label for="task-title" class="form-label">Task title <span class="text-rose-500">*</span></label>
+            <input id="task-title" class="form-input" type="text" maxlength="160" placeholder="e.g. Prepare project proposal" aria-describedby="title-error">
+            <p id="title-error" class="form-error" aria-live="polite"></p>
+          </div>
+          <div>
+            <label for="task-description" class="form-label">Notes</label>
+            <textarea id="task-description" class="form-input min-h-[90px] resize-y" rows="3" maxlength="2000" placeholder="Add a few details to help you get started..."></textarea>
+          </div>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div><label for="task-due-date" class="form-label">Due date</label><input id="task-due-date" class="form-input" type="text" inputmode="numeric" placeholder="MM/DD/YYYY" maxlength="10" aria-describedby="date-error"><p id="date-error" class="form-error" aria-live="polite"></p></div>
+            <div><label for="task-status" class="form-label">Status</label><select id="task-status" class="form-input"><option value="todo">To do</option><option value="in-progress">In progress</option><option value="done">Done</option></select></div>
+          </div>
+          <div>
+            <div class="mb-2 flex items-center justify-between"><label for="task-importance" class="form-label mb-0">Importance</label><span class="rounded-lg bg-mint px-2.5 py-1 text-xs font-semibold text-brand"><span id="importance-value">5</span> / 10</span></div>
+            <input id="task-importance" class="importance-range w-full accent-brand" type="range" min="1" max="10" value="5">
+            <div class="mt-1 flex justify-between text-[11px] text-muted"><span>Low priority</span><span>High priority</span></div>
+          </div>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div><label for="task-category" class="form-label">Category</label><input id="task-category" class="form-input" type="text" maxlength="60" placeholder="e.g. Work"></div>
+            <div><label for="task-project" class="form-label">Project <span class="font-normal text-muted">(optional)</span></label><input id="task-project" class="form-input" type="text" maxlength="80" placeholder="e.g. Website refresh"></div>
+          </div>
+          <div><label for="task-tags" class="form-label">Tags</label><input id="task-tags" class="form-input" type="text" maxlength="200" placeholder="design, research, urgent"><p class="mt-1.5 text-xs text-muted">Separate multiple tags with commas.</p></div>
+        </div>
+        <div class="flex flex-col-reverse gap-2 border-t border-line bg-slate-50/70 px-6 py-4 sm:flex-row sm:justify-end sm:px-8">
+          <button type="button" data-action="close-dialog" class="rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-semibold hover:bg-slate-50">Cancel</button>
+          <button id="save-task-button" type="submit" class="rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-dark">Save task</button>
+        </div>
+      </form>
+    </dialog>
+    <div id="notice" class="notice" role="status" aria-live="polite"></div>
+    <script src="./app.js" defer></script>
+  </body>
+</html>
