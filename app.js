@@ -24,6 +24,8 @@
     calendarDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
   };
   let noticeTimer;
+  let confettiTimer;
+  let pendingPurgeId = "";
 
   function readTasks(storageName, key) {
     try {
@@ -235,7 +237,7 @@
   function renderCollections() {
     const source = state.view === "trash" ? state.trash : state.tasks;
     const groups = [
-      { id: "category-list", key: "category", items: [...new Set(source.map((task) => task.category).filter(Boolean))].sort((a, b) => a.localeCompare(b, "en")), label: "category" },
+      { id: "category-list", key: "category", items: [...new Set(state.tasks.map((task) => task.category).filter(Boolean))].sort((a, b) => a.localeCompare(b, "en")), label: "category" },
       { id: "project-list", key: "project", items: [...new Set(source.map((task) => task.project).filter(Boolean))].sort((a, b) => a.localeCompare(b, "en")), label: "project" },
       { id: "tag-list", key: "tag", items: [...new Set(source.flatMap((task) => Array.isArray(task.tags) ? task.tags : []))].sort((a, b) => a.localeCompare(b, "en")), label: "tag" }
     ];
@@ -246,9 +248,17 @@
         return;
       }
       container.innerHTML = items.map((value) => {
-        const count = source.filter((task) => key === "tag" ? Array.isArray(task.tags) && task.tags.includes(value) : task[key] === value).length;
+        const categoryTasks = key === "category" ? state.tasks.filter((task) => task.category === value) : [];
+        const count = key === "category"
+          ? categoryTasks.length
+          : source.filter((task) => key === "tag" ? Array.isArray(task.tags) && task.tags.includes(value) : task[key] === value).length;
         const selected = state[key] === value ? "active" : "";
         const glyph = label === "category" ? '<span class="collection-dot"></span>' : label === "project" ? '<span class="text-[13px]">▰</span>' : '<span class="text-[13px]">#</span>';
+        if (key === "category") {
+          const completed = categoryTasks.filter((task) => task.status === "done").length;
+          const percent = count ? Math.round((completed / count) * 100) : 0;
+          return `<div class="category-collection"><button type="button" class="collection-item ${selected}" data-filter="${key}" data-value="${escapeHtml(value)}">${glyph}<span class="truncate">${escapeHtml(value)}</span><span class="collection-count">${completed}/${count}</span></button><div class="category-progress-track" role="progressbar" aria-label="${escapeHtml(value)} category completion" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}"><span class="category-progress-fill" style="width:${percent}%"></span></div></div>`;
+        }
         return `<button type="button" class="collection-item ${selected}" data-filter="${key}" data-value="${escapeHtml(value)}">${glyph}<span class="truncate">${escapeHtml(value)}</span><span class="collection-count">${count}</span></button>`;
       }).join("");
     });
@@ -310,6 +320,37 @@
     renderTaskList(tasks);
     renderCalendar(getCalendarTasks());
     renderEmptyState(tasks);
+  }
+
+  function launchConfetti(target) {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const layer = byId("confetti-layer");
+    const bounds = target.getBoundingClientRect();
+    const originX = bounds.left + bounds.width / 2;
+    const originY = bounds.top + bounds.height / 2;
+    const colors = ["#28785f", "#f2b84b", "#ef7b68", "#72a8d0", "#b18bd4", "#5dbb92"];
+    const fragment = document.createDocumentFragment();
+
+    for (let index = 0; index < 36; index += 1) {
+      const piece = document.createElement("span");
+      const angle = (Math.PI * 2 * index) / 36 + (Math.random() - 0.5) * 0.35;
+      const distance = 55 + Math.random() * 115;
+      piece.className = "confetti-piece";
+      piece.style.left = `${originX}px`;
+      piece.style.top = `${originY}px`;
+      piece.style.setProperty("--dx", `${Math.cos(angle) * distance}px`);
+      piece.style.setProperty("--dy", `${Math.sin(angle) * distance + 70}px`);
+      piece.style.setProperty("--spin", `${Math.random() * 720 - 360}deg`);
+      piece.style.setProperty("--duration", `${700 + Math.random() * 500}ms`);
+      piece.style.setProperty("--delay", `${Math.random() * 100}ms`);
+      piece.style.setProperty("--piece-color", colors[Math.floor(Math.random() * colors.length)]);
+      if (Math.random() > 0.5) piece.classList.add("confetti-circle");
+      fragment.appendChild(piece);
+    }
+
+    layer.replaceChildren(fragment);
+    window.clearTimeout(confettiTimer);
+    confettiTimer = window.setTimeout(() => layer.replaceChildren(), 1500);
   }
 
   function resetForm() {
@@ -456,8 +497,19 @@
         restoreTask(id);
         break;
       case "purge": {
+        const taskToDelete = state.trash.find((item) => item.id === id);
+        if (!taskToDelete) break;
+        pendingPurgeId = id;
+        byId("delete-confirm-task").textContent = `"${taskToDelete.title}"`;
+        byId("delete-confirm-dialog").showModal();
+        break;
+      }
+      case "confirm-purge": {
+        const taskIdToPurge = pendingPurgeId;
+        pendingPurgeId = "";
+        byId("delete-confirm-dialog").close();
         const previousLength = state.trash.length;
-        state.trash = state.trash.filter((item) => item.id !== id);
+        state.trash = state.trash.filter((item) => item.id !== taskIdToPurge);
         if (state.trash.length !== previousLength) {
           const saved = saveTrash();
           render();
@@ -465,18 +517,26 @@
         }
         break;
       }
+      case "cancel-purge":
+        pendingPurgeId = "";
+        byId("delete-confirm-dialog").close();
+        break;
       case "toggle":
         if (task) {
+          const wasDone = task.status === "done";
           task.status = target.checked ? "done" : "todo";
           const saved = saveTasks();
+          if (saved && !wasDone && task.status === "done") launchConfetti(target);
           render();
           if (saved) showNotice(task.status === "done" ? "Task completed." : "Task marked as to do.");
         }
         break;
       case "status":
         if (task) {
+          const wasDone = task.status === "done";
           task.status = target.value;
           const saved = saveTasks();
+          if (saved && !wasDone && task.status === "done") launchConfetti(target);
           render();
           if (saved) showNotice(`Status changed to "${statusLabels[target.value]}".`);
         }
@@ -535,9 +595,11 @@
     const task = validateAndBuildTask();
     if (!task) return;
     const existingIndex = state.tasks.findIndex((item) => item.id === task.id);
+    const wasDone = existingIndex >= 0 && state.tasks[existingIndex].status === "done";
     if (existingIndex >= 0) state.tasks[existingIndex] = task;
     else state.tasks.unshift(task);
     const saved = saveTasks();
+    if (saved && task.status === "done" && !wasDone) launchConfetti(byId("save-task-button"));
     byId("task-dialog").close();
     if (state.view === "trash") setView("all");
     else render();
@@ -577,6 +639,15 @@
   });
   byId("task-dialog").addEventListener("click", (event) => {
     if (event.target === byId("task-dialog")) byId("task-dialog").close();
+  });
+  byId("delete-confirm-dialog").addEventListener("click", (event) => {
+    if (event.target === byId("delete-confirm-dialog")) {
+      pendingPurgeId = "";
+      byId("delete-confirm-dialog").close();
+    }
+  });
+  byId("delete-confirm-dialog").addEventListener("close", () => {
+    pendingPurgeId = "";
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "/" && !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement.tagName)) {

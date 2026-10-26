@@ -23,6 +23,7 @@ button {
 }
 
 .sidebar {
+  overflow-y: auto;
   transform: translateX(0);
 }
 
@@ -83,6 +84,32 @@ button {
   display: flex;
   flex-direction: column;
   gap: 3px;
+}
+
+.category-collection {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.category-collection .collection-item {
+  padding-bottom: 5px;
+}
+
+.category-progress-track {
+  height: 3px;
+  overflow: hidden;
+  margin: 0 11px 4px 28px;
+  border-radius: 99px;
+  background: #edf1ee;
+}
+
+.category-progress-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #79b797;
+  transition: width .25s ease;
 }
 
 .collection-item {
@@ -528,6 +555,50 @@ button {
   backdrop-filter: blur(2px);
 }
 
+.confirm-dialog {
+  border: 0;
+}
+
+.confirm-dialog::backdrop {
+  background: rgb(15 23 42 / 40%);
+  backdrop-filter: blur(2px);
+}
+
+.confetti-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.confetti-piece {
+  position: absolute;
+  width: 8px;
+  height: 11px;
+  border-radius: 2px;
+  background: var(--piece-color);
+  opacity: 0;
+  animation: confetti-burst var(--duration) cubic-bezier(.18, .7, .25, 1) var(--delay) both;
+}
+
+.confetti-piece.confetti-circle {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+@keyframes confetti-burst {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotate(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--dx), var(--dy), 0) rotate(var(--spin)) scale(.55);
+  }
+}
+
 .notice {
   position: fixed;
   right: 24px;
@@ -648,6 +719,13 @@ button {
 @media (max-width: 420px) {
   .search-box {
     width: 48vw;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .confetti-piece {
+      animation: none;
+      display: none;
+    }
   }
 
   .calendar-cell {

@@ -206,6 +206,18 @@
         </div>
       </form>
     </dialog>
+    <dialog id="delete-confirm-dialog" class="confirm-dialog w-[min(100%-32px,420px)] rounded-2xl bg-white p-0 shadow-pop backdrop:bg-slate-900/40" aria-labelledby="delete-confirm-title">
+      <div class="p-6 sm:p-7">
+        <div class="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-rose-50 text-xl text-rose-600" aria-hidden="true">!</div>
+        <h2 id="delete-confirm-title" class="text-lg font-bold">Permanently delete this task?</h2>
+        <p class="mt-2 text-sm leading-6 text-muted">This action cannot be undone. <span id="delete-confirm-task" class="font-semibold text-ink"></span> will be permanently removed.</p>
+        <div class="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <button type="button" data-action="cancel-purge" class="rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-semibold hover:bg-slate-50">Cancel</button>
+          <button type="button" data-action="confirm-purge" class="rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-700">Delete permanently</button>
+        </div>
+      </div>
+    </dialog>
+    <div id="confetti-layer" class="confetti-layer" aria-hidden="true"></div>
     <div id="notice" class="notice" role="status" aria-live="polite"></div>
     <script src="./app.js" defer></script>
   </body>
